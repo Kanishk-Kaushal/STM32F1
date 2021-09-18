@@ -1,6 +1,10 @@
 //reciever
 #include "stm32f10x.h"
 volatile static uint16_t myTicks = 0;
+
+
+
+
 void SysTick_Handler(void);
 void delayMs(uint16_t ms);
 void ports(void);
@@ -13,6 +17,19 @@ void delayMs(uint16_t ms)
 {
 	myTicks = 0;
 	while(myTicks<ms);
+}
+
+void blink ()
+{
+	int t=0;
+	while (t<2)
+	{
+		GPIOC -> ODR |= 0x2000;
+		delayMs(100);
+		GPIOC ->  ODR &= ~0x2000;
+		delayMs(100);
+		t++;
+	}
 }
 
 int main()
@@ -44,11 +61,9 @@ int main()
 	{
 		if( USART1->SR & USART_SR_RXNE)
 		{
-			char temp=USART1->DR;
+			unsigned char temp=USART1->DR;
 			if(temp=='a')
-				GPIOC -> ODR |= 0x2000;
-			else
-				GPIOC -> ODR &= ~0x2000;
+				blink();
 		}
 
 		
@@ -70,9 +85,10 @@ void ports(void)
 }
 
 
+
 //transmitter
 #include "stm32f10x.h"
-char temp='a';
+unsigned char temp='a';
 volatile static uint16_t myTicks = 0;
 void SysTick_Handler(void);
 void delayMs(uint16_t ms);
@@ -115,7 +131,7 @@ int main()
 		if(GPIOA -> IDR & 0x00000001) // IDR -> INPUT DATA REGISTER | CHECKING STATUS OF A0
 		{
 			USART1->DR = temp;
-			while(!(USART1->SR & USART_SR_TC));
+			while(!(USART1->SR & USART_SR_TXE));
 		}
 		
 		
